@@ -68,25 +68,39 @@ class ProdutoDAO(context: Context): IProdutoDAO {
     }
 
     override fun remover(idProduto: Int): Boolean {
-
-/*        val sql = "DELETE FROM ${DatabaseHelper.TABELA_PRODUTOS}" +
-                " WHERE ${DatabaseHelper.ID_PRODUTO} = $idProduto;"*/
-
-        var args = arrayOf(idProduto.toString())
         try {
-            //escrita.execSQL(sql)
+            // Verifica se o produto existe
+            val cursor = leitura.query(
+                DatabaseHelper.TABELA_PRODUTOS,
+                arrayOf(DatabaseHelper.ID_PRODUTO),
+                "${DatabaseHelper.ID_PRODUTO} = ?",
+                arrayOf(idProduto.toString()),
+                null, null, null
+            )
+
+            if (cursor.count == 0) {
+                Log.i("info_db", "Produto com ID $idProduto não encontrado.")
+                cursor.close()
+                return false
+            }
+
+            cursor.close()
+
+            // Se existir, realiza a exclusão
+            val args = arrayOf(idProduto.toString())
             escrita.delete(
                 DatabaseHelper.TABELA_PRODUTOS,
                 "${DatabaseHelper.ID_PRODUTO} = ?",
                 args
             )
-            Log.i("info_db", "Sucesso ao remover")
-        }catch (e: Exception){
-            Log.i("info_db", "Erro ao remover")
+            Log.i("info_db", "Sucesso ao remover produto com ID $idProduto.")
+            return true
+        } catch (e: Exception) {
+            Log.e("info_db", "Erro ao remover produto com ID $idProduto.", e)
             return false
         }
-        return true
     }
+
 
     override fun listar(): List<Produto> {
 
